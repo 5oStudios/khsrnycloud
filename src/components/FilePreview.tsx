@@ -94,7 +94,11 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
     onRemove();
   };
 
-  const handleDownload = () => {
+  const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("=== DOWNLOAD CLICKED ===");
+    
     const link = document.createElement('a');
     link.href = url;
     link.download = file.name;
@@ -109,7 +113,10 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
     });
   };
 
-  const handlePlayPause = async () => {
+  const handlePlayPause = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("=== PLAY/PAUSE CLICKED ===");
     console.log("Play/Pause button clicked, isPlaying:", isPlaying);
     console.log("Audio element:", audioRef.current);
     
@@ -138,7 +145,10 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
     }
   };
 
-  const handleMute = () => {
+  const handleMute = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("=== MUTE CLICKED ===");
     if (!audioRef.current) return;
     
     audioRef.current.muted = !isMuted;
@@ -259,43 +269,46 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
               </div>
 
               {/* Control Buttons Row */}
-              <div className="flex items-center justify-center space-x-3 sm:space-x-4 pt-1">
+              <div className="flex items-center justify-center space-x-3 sm:space-x-4 pt-1 relative z-10">
                 {/* Play/Pause Button - Larger for mobile */}
                 <button
                   onClick={handlePlayPause}
-                  className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-neon-purple/20 hover:bg-neon-purple/30 active:bg-neon-purple/40 border border-neon-purple/50 transition-all duration-200 active:scale-95 touch-manipulation"
+                  className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-neon-purple/20 hover:bg-neon-purple/30 active:bg-neon-purple/40 border border-neon-purple/50 transition-all duration-200 active:scale-95 touch-manipulation cursor-pointer"
                   type="button"
                   aria-label={isPlaying ? "Pause" : "Play"}
+                  style={{ pointerEvents: 'all' }}
                 >
                   {isPlaying ? (
-                    <Pause className="h-4 w-4 sm:h-5 sm:w-5 text-neon-purple" />
+                    <Pause className="h-4 w-4 sm:h-5 sm:w-5 text-neon-purple pointer-events-none" />
                   ) : (
-                    <Play className="h-4 w-4 sm:h-5 sm:w-5 text-neon-purple ml-0.5" />
+                    <Play className="h-4 w-4 sm:h-5 sm:w-5 text-neon-purple ml-0.5 pointer-events-none" />
                   )}
                 </button>
 
                 {/* Mute Button */}
                 <button
                   onClick={handleMute}
-                  className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-neon-cyan/20 hover:bg-neon-cyan/30 active:bg-neon-cyan/40 border border-neon-cyan/50 transition-all duration-200 active:scale-95 touch-manipulation"
+                  className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-neon-cyan/20 hover:bg-neon-cyan/30 active:bg-neon-cyan/40 border border-neon-cyan/50 transition-all duration-200 active:scale-95 touch-manipulation cursor-pointer"
                   type="button"
                   aria-label={isMuted ? "Unmute" : "Mute"}
+                  style={{ pointerEvents: 'all' }}
                 >
                   {isMuted ? (
-                    <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 text-neon-cyan" />
+                    <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 text-neon-cyan pointer-events-none" />
                   ) : (
-                    <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 text-neon-cyan" />
+                    <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 text-neon-cyan pointer-events-none" />
                   )}
                 </button>
 
                 {/* Download Button */}
                 <button
                   onClick={handleDownload}
-                  className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-green-500/20 hover:bg-green-500/30 active:bg-green-500/40 border border-green-500/50 transition-all duration-200 active:scale-95 touch-manipulation"
+                  className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-green-500/20 hover:bg-green-500/30 active:bg-green-500/40 border border-green-500/50 transition-all duration-200 active:scale-95 touch-manipulation cursor-pointer"
                   type="button"
                   aria-label="Download"
+                  style={{ pointerEvents: 'all' }}
                 >
-                  <Download className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4 text-green-400 pointer-events-none" />
                 </button>
               </div>
             </div>
