@@ -2,12 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 const Header = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { signOut } = useAuth();
+  
   const handleSignOut = () => {
+    signOut();
     toast({
       title: "Signed out",
       description: "You have been signed out successfully"
