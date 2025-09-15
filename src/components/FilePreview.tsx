@@ -20,8 +20,8 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
     try {
       await navigator.clipboard.writeText(url);
       toast({
-        title: "URL copied!",
-        description: "KHSRNY storage URL has been copied to your clipboard.",
+        title: "URL Copied!",
+        description: "KHSRNY storage URL copied to clipboard",
       });
     } catch (err) {
       toast({
@@ -81,6 +81,15 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
                   {isPlaying ? "Playing..." : "Ready to play"}
                 </div>
               </div>
+              <audio 
+                controls 
+                className="w-full max-w-xs" 
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              >
+                <source src={url} type={file.type} />
+                Your browser does not support the audio element.
+              </audio>
             </div>
           </div>
         )}
