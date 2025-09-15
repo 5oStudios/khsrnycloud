@@ -168,9 +168,6 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
                 Uploaded: {uploadedAt.toLocaleDateString()} {uploadedAt.toLocaleTimeString()}
               </div>
             )}
-            <div className="text-xs text-muted-foreground mt-1 break-all">
-              URL: {url}
-            </div>
           </div>
           
           <div className="flex space-x-2 relative z-10">
