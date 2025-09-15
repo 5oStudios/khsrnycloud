@@ -109,22 +109,32 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
     });
   };
 
-  const handlePlayPause = () => {
-    if (!audioRef.current) return;
+  const handlePlayPause = async () => {
+    console.log("Play/Pause button clicked, isPlaying:", isPlaying);
+    console.log("Audio element:", audioRef.current);
     
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().catch(err => {
-        console.error("Audio play failed:", err);
-        toast({
-          title: "Playback Error",
-          description: "Unable to play audio file",
-          variant: "destructive",
-        });
+    if (!audioRef.current) {
+      console.error("Audio element not found");
+      return;
+    }
+    
+    try {
+      if (isPlaying) {
+        console.log("Pausing audio");
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        console.log("Playing audio");
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      console.error("Audio play failed:", err);
+      toast({
+        title: "Playback Error",
+        description: "Unable to play audio file",
+        variant: "destructive",
       });
-      setIsPlaying(true);
     }
   };
 
@@ -162,10 +172,10 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
   }, []);
 
   return (
-    <div className="cyber-border rounded-xl p-4 bg-card/80 backdrop-blur-sm animate-fade-in">
-      <div className="space-y-4">
+    <div className="cyber-border rounded-xl p-3 md:p-4 bg-card/80 backdrop-blur-sm animate-fade-in w-full min-h-[200px] flex flex-col">
+      <div className="space-y-3 flex-1 flex flex-col">
         {type === "images" ? (
-          <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+          <div className="aspect-video rounded-lg overflow-hidden bg-muted flex-1">
             <img
               src={url}
               alt={file.name}
@@ -177,9 +187,9 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
             />
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {/* Audio Player Header */}
-            <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-center p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-full bg-neon-purple/20 border border-neon-purple/30">
                   <Play className="h-4 w-4 text-neon-purple" />
@@ -193,72 +203,105 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
               </div>
             </div>
 
-            {/* Mobile Audio Controls */}
-            <div className="bg-card/50 rounded-lg p-3 border border-neon-cyan/20">
-              {/* Hidden audio element */}
+            {/* Mobile Audio Controls Container */}
+            <div className="bg-card/50 rounded-lg p-4 border border-neon-cyan/20 space-y-4">
+              {/* Hidden audio element with proper setup */}
               <audio 
                 ref={audioRef}
                 src={url}
                 preload="metadata"
                 className="hidden"
+                onLoadedMetadata={() => {
+                  console.log("Audio metadata loaded, duration:", audioRef.current?.duration);
+                  if (audioRef.current) {
+                    setDuration(audioRef.current.duration || 0);
+                  }
+                }}
+                onTimeUpdate={() => {
+                  if (audioRef.current) {
+                    setCurrentTime(audioRef.current.currentTime);
+                  }
+                }}
+                onEnded={() => {
+                  console.log("Audio ended");
+                  setIsPlaying(false);
+                }}
+                onPlay={() => {
+                  console.log("Audio started playing");
+                  setIsPlaying(true);
+                }}
+                onPause={() => {
+                  console.log("Audio paused");
+                  setIsPlaying(false);
+                }}
               />
 
               {/* Progress Bar */}
-              <div className="mb-3">
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{formatTime(currentTime)}</span>
                   <span>{formatTime(duration)}</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-1">
+                <div className="w-full bg-muted rounded-full h-2 cursor-pointer" 
+                     onClick={(e) => {
+                       if (audioRef.current && duration > 0) {
+                         const rect = e.currentTarget.getBoundingClientRect();
+                         const x = e.clientX - rect.left;
+                         const percentage = x / rect.width;
+                         const newTime = percentage * duration;
+                         audioRef.current.currentTime = newTime;
+                       }
+                     }}>
                   <div 
-                    className="bg-gradient-to-r from-neon-purple to-neon-cyan h-1 rounded-full transition-all duration-300"
-                    style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                    className="bg-gradient-to-r from-neon-purple to-neon-cyan h-2 rounded-full transition-all duration-150"
+                    style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                   />
                 </div>
               </div>
 
-              {/* Control Buttons */}
-              <div className="flex items-center justify-center space-x-3">
-                {/* Play/Pause Button */}
+              {/* Control Buttons Row */}
+              <div className="flex items-center justify-center space-x-4">
+                {/* Play/Pause Button - Larger for mobile */}
                 <button
                   onClick={handlePlayPause}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/50 transition-colors"
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/50 transition-all duration-200 active:scale-95"
                   type="button"
                 >
                   {isPlaying ? (
-                    <Pause className="h-4 w-4 text-neon-purple" />
+                    <Pause className="h-5 w-5 text-neon-purple" />
                   ) : (
-                    <Play className="h-4 w-4 text-neon-purple ml-0.5" />
+                    <Play className="h-5 w-5 text-neon-purple ml-0.5" />
                   )}
                 </button>
 
                 {/* Mute Button */}
                 <button
                   onClick={handleMute}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/50 transition-colors"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/50 transition-all duration-200 active:scale-95"
                   type="button"
                 >
                   {isMuted ? (
-                    <VolumeX className="h-3 w-3 text-neon-cyan" />
+                    <VolumeX className="h-4 w-4 text-neon-cyan" />
                   ) : (
-                    <Volume2 className="h-3 w-3 text-neon-cyan" />
+                    <Volume2 className="h-4 w-4 text-neon-cyan" />
                   )}
                 </button>
 
                 {/* Download Button */}
                 <button
                   onClick={handleDownload}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 transition-colors"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 transition-all duration-200 active:scale-95"
                   type="button"
                 >
-                  <Download className="h-3 w-3 text-green-400" />
+                  <Download className="h-4 w-4 text-green-400" />
                 </button>
               </div>
             </div>
           </div>
         )}
         
-        <div className="space-y-3">
+        {/* File Info and Actions - Always at bottom */}
+        <div className="space-y-3 mt-auto">
           <div>
             <div className="text-sm font-medium truncate">{file.name}</div>
             <div className="text-xs text-muted-foreground">
@@ -274,10 +317,10 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
           <div className="flex space-x-2 relative z-10">
             <button
               onClick={handleCopyUrl}
-              className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-neon-cyan/30 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 h-9 px-3 cursor-pointer bg-background text-foreground"
+              className="flex-1 inline-flex items-center justify-center rounded-md text-xs md:text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-neon-cyan/30 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 h-8 md:h-9 px-2 md:px-3 cursor-pointer bg-background text-foreground"
               type="button"
             >
-              <Copy className="h-3 w-3 mr-2" />
+              <Copy className="h-3 w-3 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Copy URL</span>
               <span className="sm:hidden">Copy</span>
             </button>
@@ -285,7 +328,7 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
             {type === "sounds" && (
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-green-500/30 hover:border-green-500/50 hover:bg-green-500/10 h-9 px-3 cursor-pointer bg-background text-green-400"
+                className="inline-flex items-center justify-center rounded-md text-xs md:text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-green-500/30 hover:border-green-500/50 hover:bg-green-500/10 h-8 md:h-9 px-2 md:px-3 cursor-pointer bg-background text-green-400"
                 type="button"
               >
                 <Download className="h-3 w-3" />
@@ -294,10 +337,10 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
             
             <button
               onClick={handleRemove}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 px-3 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-md text-xs md:text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 md:h-9 px-2 md:px-3 cursor-pointer"
               type="button"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3 md:h-4 md:w-4" />
             </button>
           </div>
         </div>
