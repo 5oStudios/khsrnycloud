@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Play, Pause, ExternalLink } from "lucide-react";
+import { Copy, Play, Pause, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,59 +16,78 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
-  const handleCopyUrl = async () => {
-    console.log("Copy button clicked, URL:", url);
+  const handleCopyUrl = () => {
+    console.log("=== COPY BUTTON CLICKED ===");
+    console.log("URL to copy:", url);
+    
+    if (!url) {
+      console.error("No URL to copy!");
+      toast({
+        title: "Error",
+        description: "No URL available to copy",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      if (!navigator.clipboard) {
-        // Fallback for browsers that don't support clipboard API
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          console.log("✅ Successfully copied via clipboard API");
+          toast({
+            title: "URL Copied!",
+            description: "KHSRNY storage URL copied to clipboard",
+          });
+        }).catch((err) => {
+          console.error("Clipboard API failed:", err);
+          fallbackCopy();
+        });
+      } else {
+        console.log("Clipboard API not available, using fallback");
+        fallbackCopy();
+      }
+    } catch (err) {
+      console.error("Copy error:", err);
+      fallbackCopy();
+    }
+  };
+
+  const fallbackCopy = () => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        console.log("✅ Successfully copied via fallback method");
         toast({
           title: "URL Copied!",
           description: "KHSRNY storage URL copied to clipboard",
         });
-        console.log("Copied URL using fallback method:", url);
-        return;
+      } else {
+        throw new Error("Fallback copy failed");
       }
-
-      await navigator.clipboard.writeText(url);
-      toast({
-        title: "URL Copied!",
-        description: "KHSRNY storage URL copied to clipboard",
-      });
-      console.log("Successfully copied URL:", url);
     } catch (err) {
-      console.error("Copy failed:", err);
-      console.log("Failed to copy URL:", url);
-      
-      // Try fallback method
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        toast({
-          title: "URL Copied!",
-          description: "KHSRNY storage URL copied to clipboard (fallback method)",
-        });
-        console.log("Copied URL using fallback after error:", url);
-      } catch (fallbackErr) {
-        console.error("Fallback copy also failed:", fallbackErr);
-        toast({
-          title: "Failed to copy",
-          description: "Could not copy URL to clipboard",
-          variant: "destructive",
-        });
-      }
+      console.error("❌ All copy methods failed:", err);
+      toast({
+        title: "Copy Failed",
+        description: "Unable to copy URL to clipboard",
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleRemove = () => {
+    console.log("=== DELETE BUTTON CLICKED ===");
+    console.log("Removing file:", name);
+    onRemove();
   };
 
   const handlePlayPause = () => {
@@ -148,37 +167,23 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
             </div>
           </div>
           
-          <div className="flex space-x-2">
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log("Copy button clicked!");
-                handleCopyUrl();
-              }}
-              size="sm"
-              variant="outline"
-              className="flex-1 border-neon-cyan/30 hover:border-neon-cyan/50 hover:bg-neon-cyan/10"
+          <div className="flex space-x-2 relative z-10">
+            <button
+              onClick={handleCopyUrl}
+              className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-neon-cyan/30 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 h-9 px-3 cursor-pointer bg-background text-foreground"
               type="button"
             >
               <Copy className="h-3 w-3 mr-2" />
               Copy URL
-            </Button>
+            </button>
             
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log("Delete button clicked!");
-                onRemove();
-              }}
-              size="sm"
-              variant="destructive"
-              className="px-3"
+            <button
+              onClick={handleRemove}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 px-3 cursor-pointer"
               type="button"
             >
-              ×
-            </Button>
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
