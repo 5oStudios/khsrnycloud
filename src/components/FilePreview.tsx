@@ -17,20 +17,57 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
   const { toast } = useToast();
 
   const handleCopyUrl = async () => {
+    console.log("Copy button clicked, URL:", url);
     try {
+      if (!navigator.clipboard) {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        toast({
+          title: "URL Copied!",
+          description: "KHSRNY storage URL copied to clipboard",
+        });
+        console.log("Copied URL using fallback method:", url);
+        return;
+      }
+
       await navigator.clipboard.writeText(url);
       toast({
         title: "URL Copied!",
         description: "KHSRNY storage URL copied to clipboard",
       });
-      console.log("Copied URL:", url); // Debug log
+      console.log("Successfully copied URL:", url);
     } catch (err) {
-      console.error("Copy failed:", err); // Debug log
-      toast({
-        title: "Failed to copy",
-        description: "Could not copy URL to clipboard",
-        variant: "destructive",
-      });
+      console.error("Copy failed:", err);
+      console.log("Failed to copy URL:", url);
+      
+      // Try fallback method
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        toast({
+          title: "URL Copied!",
+          description: "KHSRNY storage URL copied to clipboard (fallback method)",
+        });
+        console.log("Copied URL using fallback after error:", url);
+      } catch (fallbackErr) {
+        console.error("Fallback copy also failed:", fallbackErr);
+        toast({
+          title: "Failed to copy",
+          description: "Could not copy URL to clipboard",
+          variant: "destructive",
+        });
+      }
     }
   };
 
