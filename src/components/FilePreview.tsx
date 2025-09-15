@@ -150,20 +150,32 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
           
           <div className="flex space-x-2">
             <Button
-              onClick={handleCopyUrl}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Copy button clicked!");
+                handleCopyUrl();
+              }}
               size="sm"
               variant="outline"
               className="flex-1 border-neon-cyan/30 hover:border-neon-cyan/50 hover:bg-neon-cyan/10"
+              type="button"
             >
               <Copy className="h-3 w-3 mr-2" />
               Copy URL
             </Button>
             
             <Button
-              onClick={onRemove}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Delete button clicked!");
+                onRemove();
+              }}
               size="sm"
               variant="destructive"
               className="px-3"
+              type="button"
             >
               ×
             </Button>
