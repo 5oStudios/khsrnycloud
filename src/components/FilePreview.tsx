@@ -20,7 +20,9 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
-  const handleCopyUrl = () => {
+  const handleCopyUrl = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log("=== COPY BUTTON CLICKED ===");
     console.log("URL to copy:", url);
     
@@ -88,7 +90,9 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
     }
   };
 
-  const handleRemove = () => {
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log("=== DELETE BUTTON CLICKED ===");
     console.log("Removing file:", name);
     onRemove();
@@ -329,15 +333,16 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
             )}
           </div>
           
-          <div className="flex space-x-1.5 sm:space-x-2">
+          <div className="flex space-x-1.5 sm:space-x-2 relative z-10">
             <button
               onClick={handleCopyUrl}
               className="flex-1 inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-neon-cyan/30 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 h-8 sm:h-9 px-2 sm:px-3 cursor-pointer bg-background text-foreground touch-manipulation"
               type="button"
+              style={{ pointerEvents: 'all' }}
             >
-              <Copy className="h-3 w-3 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Copy URL</span>
-              <span className="sm:hidden">Copy</span>
+              <Copy className="h-3 w-3 mr-1 sm:mr-2 pointer-events-none" />
+              <span className="hidden sm:inline pointer-events-none">Copy URL</span>
+              <span className="sm:hidden pointer-events-none">Copy</span>
             </button>
 
             {type === "sounds" && (
@@ -345,8 +350,9 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
                 onClick={handleDownload}
                 className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-green-500/30 hover:border-green-500/50 hover:bg-green-500/10 h-8 sm:h-9 px-2 sm:px-3 cursor-pointer bg-background text-green-400 touch-manipulation"
                 type="button"
+                style={{ pointerEvents: 'all' }}
               >
-                <Download className="h-3 w-3" />
+                <Download className="h-3 w-3 pointer-events-none" />
               </button>
             )}
             
@@ -354,8 +360,9 @@ const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePrevie
               onClick={handleRemove}
               className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 sm:h-9 px-2 sm:px-3 cursor-pointer touch-manipulation"
               type="button"
+              style={{ pointerEvents: 'all' }}
             >
-              <X className="h-3 w-3 sm:h-4 sm:w-4" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4 pointer-events-none" />
             </button>
           </div>
         </div>
