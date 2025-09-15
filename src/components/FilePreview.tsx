@@ -5,28 +5,28 @@ import { useToast } from "@/hooks/use-toast";
 
 interface FilePreviewProps {
   file: File;
+  url: string;
+  name: string;
   type: "images" | "sounds";
   onRemove: () => void;
 }
 
-const FilePreview = ({ file, type, onRemove }: FilePreviewProps) => {
+const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   
-  const fileUrl = URL.createObjectURL(file);
-
   const handleCopyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(fileUrl);
+      await navigator.clipboard.writeText(url);
       toast({
-        title: "URL Copied!",
-        description: "File URL copied to clipboard",
+        title: "URL copied!",
+        description: "KHSRNY storage URL has been copied to your clipboard.",
       });
     } catch (err) {
       toast({
-        title: "Failed to copy",
-        description: "Could not copy URL to clipboard",
+        title: "Failed to copy URL",
+        description: "Could not copy the URL to your clipboard.",
         variant: "destructive",
       });
     }
@@ -34,7 +34,7 @@ const FilePreview = ({ file, type, onRemove }: FilePreviewProps) => {
 
   const handlePlayPause = () => {
     if (!audioElement) {
-      const audio = new Audio(fileUrl);
+      const audio = new Audio(url);
       audio.addEventListener("ended", () => setIsPlaying(false));
       setAudioElement(audio);
       audio.play();
@@ -56,7 +56,7 @@ const FilePreview = ({ file, type, onRemove }: FilePreviewProps) => {
         {type === "images" ? (
           <div className="aspect-video rounded-lg overflow-hidden bg-muted">
             <img
-              src={fileUrl}
+              src={url}
               alt={file.name}
               className="w-full h-full object-cover"
             />

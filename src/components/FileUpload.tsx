@@ -1,13 +1,17 @@
 import { useState, useCallback } from "react";
 import { Upload, Image, Music } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
   type: "images" | "sounds";
-  onFilesUploaded: (files: File[]) => void;
+  onFilesUploaded: (files: { file: File; url: string; name: string }[]) => void;
 }
 
 const FileUpload = ({ type, onFilesUploaded }: FileUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
   
   const acceptedTypes = type === "images" ? ".jpg,.jpeg,.png" : ".mp3";
   const icon = type === "images" ? Image : Music;
@@ -23,6 +27,47 @@ const FileUpload = ({ type, onFilesUploaded }: FileUploadProps) => {
     setIsDragOver(false);
   }, []);
 
+  const uploadToSupabase = async (files: File[]) => {
+    setIsUploading(true);
+    try {
+      const bucketId = type === "images" ? "khsrny-images" : "khsrny-sounds";
+      const uploadPromises = files.map(async (file) => {
+        const fileName = `${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from(bucketId)
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+          .from(bucketId)
+          .getPublicUrl(fileName);
+
+        return {
+          file,
+          url: urlData.publicUrl,
+          name: fileName
+        };
+      });
+
+      const results = await Promise.all(uploadPromises);
+      onFilesUploaded(results);
+      toast({
+        title: "Upload successful!",
+        description: `${files.length} file(s) uploaded to KHSRNY storage.`,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your files.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -37,27 +82,34 @@ const FileUpload = ({ type, onFilesUploaded }: FileUploadProps) => {
     });
     
     if (validFiles.length > 0) {
-      onFilesUploaded(validFiles);
+      uploadToSupabase(validFiles);
     }
-  }, [type, onFilesUploaded]);
+  }, [type]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      onFilesUploaded(files);
+      const validFiles = files.filter(file => {
+        if (type === "images") {
+          return file.type.startsWith("image/");
+        } else {
+          return file.type.startsWith("audio/");
+        }
+      });
+      uploadToSupabase(validFiles);
     }
-  }, [onFilesUploaded]);
+  }, [type]);
 
   return (
     <div className="w-full max-w-2xl mx-auto mb-8">
       <div
         className={`upload-zone rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
           isDragOver ? "drag-over" : ""
-        }`}
+        } ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={() => document.getElementById(`file-input-${type}`)?.click()}
+        onClick={() => !isUploading && document.getElementById(`file-input-${type}`)?.click()}
       >
         <div className="flex flex-col items-center space-y-4">
           <div className="p-4 rounded-full bg-primary/10 border border-primary/20">
@@ -66,10 +118,10 @@ const FileUpload = ({ type, onFilesUploaded }: FileUploadProps) => {
           
           <div>
             <h3 className="text-lg font-semibold mb-2">
-              Drop your {type} here
+              {isUploading ? `Uploading to KHSRNY/${type}...` : `Drop your ${type} here`}
             </h3>
             <p className="text-muted-foreground text-sm">
-              or click to browse files
+              {isUploading ? "Please wait..." : "or click to browse files"}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
               Supports: {type === "images" ? "JPG, PNG" : "MP3"}

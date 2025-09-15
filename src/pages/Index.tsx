@@ -8,10 +8,10 @@ type TabType = "images" | "sounds";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>("images");
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-  const [uploadedSounds, setUploadedSounds] = useState<File[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ file: File; url: string; name: string }[]>([]);
+  const [uploadedSounds, setUploadedSounds] = useState<{ file: File; url: string; name: string }[]>([]);
 
-  const handleFilesUploaded = (files: File[]) => {
+  const handleFilesUploaded = (files: { file: File; url: string; name: string }[]) => {
     if (activeTab === "images") {
       setUploadedImages(prev => [...prev, ...files]);
     } else {
@@ -47,10 +47,12 @@ const Index = () => {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentFiles.map((file, index) => (
+              {currentFiles.map((fileData, index) => (
                 <FilePreview
-                  key={`${file.name}-${index}`}
-                  file={file}
+                  key={`${fileData.name}-${index}`}
+                  file={fileData.file}
+                  url={fileData.url}
+                  name={fileData.name}
                   type={activeTab}
                   onRemove={() => handleRemoveFile(index)}
                 />
