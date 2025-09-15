@@ -108,6 +108,30 @@ export type Database = {
           },
         ]
       }
+      "KHSRNY users": {
+        Row: {
+          created_at: string
+          id: string
+          password_hash: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password_hash: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password_hash?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       people: {
         Row: {
           bdate: string | null
