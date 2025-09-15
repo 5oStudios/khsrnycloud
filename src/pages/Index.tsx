@@ -3,31 +3,45 @@ import Header from "@/components/Header";
 import TabNavigation from "@/components/TabNavigation";
 import FileUpload from "@/components/FileUpload";
 import FilePreview from "@/components/FilePreview";
+import { useSupabaseFiles } from "@/hooks/useSupabaseFiles";
 
 type TabType = "images" | "sounds";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>("images");
-  const [uploadedImages, setUploadedImages] = useState<{ file: File; url: string; name: string }[]>([]);
-  const [uploadedSounds, setUploadedSounds] = useState<{ file: File; url: string; name: string }[]>([]);
+  
+  const { 
+    files: uploadedImages, 
+    isLoading: imagesLoading, 
+    addFiles: addImages, 
+    removeFile: removeImage 
+  } = useSupabaseFiles("images");
+  
+  const { 
+    files: uploadedSounds, 
+    isLoading: soundsLoading, 
+    addFiles: addSounds, 
+    removeFile: removeSound 
+  } = useSupabaseFiles("sounds");
 
   const handleFilesUploaded = (files: { file: File; url: string; name: string }[]) => {
     if (activeTab === "images") {
-      setUploadedImages(prev => [...prev, ...files]);
+      addImages(files);
     } else {
-      setUploadedSounds(prev => [...prev, ...files]);
+      addSounds(files);
     }
   };
 
   const handleRemoveFile = (index: number) => {
     if (activeTab === "images") {
-      setUploadedImages(prev => prev.filter((_, i) => i !== index));
+      removeImage(index);
     } else {
-      setUploadedSounds(prev => prev.filter((_, i) => i !== index));
+      removeSound(index);
     }
   };
 
   const currentFiles = activeTab === "images" ? uploadedImages : uploadedSounds;
+  const isLoading = activeTab === "images" ? imagesLoading : soundsLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,39 +52,43 @@ const Index = () => {
         
         <FileUpload type={activeTab} onFilesUploaded={handleFilesUploaded} />
         
-        {currentFiles.length > 0 && (
-          <div className="w-full max-w-4xl mx-auto">
-            <h2 className="text-xl font-semibold mb-6 text-center">
-              <span className="bg-gradient-to-r from-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                Uploaded {activeTab === "images" ? "Images" : "Sounds"}
-              </span>
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentFiles.map((fileData, index) => (
-                <FilePreview
-                  key={`${fileData.name}-${index}`}
-                  file={fileData.file}
-                  url={fileData.url}
-                  name={fileData.name}
-                  type={activeTab}
-                  onRemove={() => handleRemoveFile(index)}
-                />
-              ))}
+        <div className="w-full max-w-4xl mx-auto">
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="text-neon-cyan">Loading {activeTab}...</div>
             </div>
-          </div>
-        )}
-        
-        {currentFiles.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4 opacity-50">
-              {activeTab === "images" ? "📷" : "🎵"}
+          ) : currentFiles.length > 0 ? (
+            <>
+              <h2 className="text-xl font-semibold mb-6 text-center">
+                <span className="bg-gradient-to-r from-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                  Uploaded {activeTab === "images" ? "Images" : "Sounds"}
+                </span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentFiles.map((fileData, index) => (
+                  <FilePreview
+                    key={`${fileData.name}-${index}`}
+                    file={fileData.file}
+                    url={fileData.url}
+                    name={fileData.name}
+                    type={activeTab}
+                    onRemove={() => handleRemoveFile(index)}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4 opacity-50">
+                {activeTab === "images" ? "📷" : "🎵"}
+              </div>
+              <p className="text-muted-foreground">
+                No {activeTab} uploaded yet. Drop some files above to get started!
+              </p>
             </div>
-            <p className="text-muted-foreground">
-              No {activeTab} uploaded yet. Drop some files above to get started!
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

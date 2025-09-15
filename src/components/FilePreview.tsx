@@ -15,7 +15,7 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
-  
+
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(url);
@@ -23,10 +23,12 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
         title: "URL Copied!",
         description: "KHSRNY storage URL copied to clipboard",
       });
+      console.log("Copied URL:", url); // Debug log
     } catch (err) {
+      console.error("Copy failed:", err); // Debug log
       toast({
-        title: "Failed to copy URL",
-        description: "Could not copy the URL to your clipboard.",
+        title: "Failed to copy",
+        description: "Could not copy URL to clipboard",
         variant: "destructive",
       });
     }
@@ -59,6 +61,10 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
               src={url}
               alt={file.name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error("Image load error:", e);
+                console.log("Failed URL:", url);
+              }}
             />
           </div>
         ) : (
@@ -99,6 +105,9 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
             <div className="text-sm font-medium truncate">{file.name}</div>
             <div className="text-xs text-muted-foreground">
               {(file.size / 1024 / 1024).toFixed(2)} MB
+            </div>
+            <div className="text-xs text-muted-foreground mt-1 break-all">
+              URL: {url}
             </div>
           </div>
           
