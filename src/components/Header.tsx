@@ -17,7 +17,7 @@ const Header = () => {
   return <header className="w-full p-4 md:p-6 border-b border-border bg-card/50 backdrop-blur-xl">
       <div className="flex items-center justify-between">
         <div className="flex-1 flex justify-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-glow bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-pink bg-clip-text text-transparent animate-glow-pulse">KHSRNY cloud</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-glow bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-pink bg-clip-text text-transparent animate-glow-pulse">KHSRNY Cloud</h1>
         </div>
         
         {/* Sign Out Button */}
