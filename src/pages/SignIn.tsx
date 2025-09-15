@@ -6,31 +6,28 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
 const SignIn = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       // Query the KHSRNY users table for authentication
-      const { data, error } = await supabase
-        .from("KHSRNY users")
-        .select("*")
-        .eq("username", username)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("KHSRNY users").select("*").eq("username", username).single();
       if (error || !data) {
         toast({
           title: "Error",
           description: "Invalid username or password",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -40,14 +37,14 @@ const SignIn = () => {
       if (data.password_hash === password) {
         toast({
           title: "Success",
-          description: "Signed in successfully",
+          description: "Signed in successfully"
         });
         navigate("/dashboard");
       } else {
         toast({
           title: "Error",
           description: "Invalid username or password",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } catch (error) {
@@ -55,21 +52,17 @@ const SignIn = () => {
       toast({
         title: "Error",
         description: "An error occurred during sign in",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <h1 className="text-6xl font-bold text-glow bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-pink bg-clip-text text-transparent animate-glow-pulse">
-            KHSRNY
-          </h1>
+          <h1 className="text-6xl font-bold text-glow bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-pink bg-clip-text text-transparent animate-glow-pulse">KHSRNY Cloud</h1>
         </div>
 
         {/* Sign In Form */}
@@ -83,45 +76,23 @@ const SignIn = () => {
                 <Label htmlFor="username" className="text-foreground">
                   Username
                 </Label>
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="bg-background/50 border-border/50"
-                  placeholder="Enter your username"
-                />
+                <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} required className="bg-background/50 border-border/50" placeholder="Enter your username" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-foreground">
                   Password
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-background/50 border-border/50"
-                  placeholder="Enter your password"
-                />
+                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required className="bg-background/50 border-border/50" placeholder="Enter your password" />
               </div>
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-purple/80 hover:to-neon-cyan/80 text-white font-medium"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-purple/80 hover:to-neon-cyan/80 text-white font-medium">
                 {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default SignIn;
