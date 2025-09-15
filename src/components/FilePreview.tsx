@@ -9,9 +9,10 @@ interface FilePreviewProps {
   name: string;
   type: "images" | "sounds";
   onRemove: () => void;
+  uploadedAt?: Date;
 }
 
-const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
+const FilePreview = ({ file, url, name, type, onRemove, uploadedAt }: FilePreviewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
@@ -162,6 +163,11 @@ const FilePreview = ({ file, url, name, type, onRemove }: FilePreviewProps) => {
             <div className="text-xs text-muted-foreground">
               {(file.size / 1024 / 1024).toFixed(2)} MB
             </div>
+            {uploadedAt && (
+              <div className="text-xs text-muted-foreground">
+                Uploaded: {uploadedAt.toLocaleDateString()} {uploadedAt.toLocaleTimeString()}
+              </div>
+            )}
             <div className="text-xs text-muted-foreground mt-1 break-all">
               URL: {url}
             </div>

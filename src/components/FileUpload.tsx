@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
   type: "images" | "sounds";
-  onFilesUploaded: (files: { file: File; url: string; name: string }[]) => void;
+  onFilesUploaded: (files: { file: File; url: string; name: string; uploadedAt: Date; size: number }[]) => void;
 }
 
 const FileUpload = ({ type, onFilesUploaded }: FileUploadProps) => {
@@ -50,8 +50,16 @@ const FileUpload = ({ type, onFilesUploaded }: FileUploadProps) => {
         };
       });
 
-      const results = await Promise.all(uploadPromises);
-      onFilesUploaded(results);
+        const results = await Promise.all(uploadPromises);
+        
+        // Add upload date to the results
+        const resultsWithDate = results.map(result => ({
+          ...result,
+          uploadedAt: new Date(),
+          size: result.file.size
+        }));
+        
+        onFilesUploaded(resultsWithDate);
       toast({
         title: "Upload successful!",
         description: `${files.length} file(s) uploaded to KHSRNY storage.`,

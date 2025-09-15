@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import TabNavigation from "@/components/TabNavigation";
 import FileUpload from "@/components/FileUpload";
 import FilePreview from "@/components/FilePreview";
+import DateFilter from "@/components/DateFilter";
 import { useSupabaseFiles } from "@/hooks/useSupabaseFiles";
 
 type TabType = "images" | "sounds";
@@ -14,17 +15,27 @@ const Index = () => {
     files: uploadedImages, 
     isLoading: imagesLoading, 
     addFiles: addImages, 
-    removeFile: removeImage 
+    removeFile: removeImage,
+    dateFilter: imagesDateFilter,
+    updateDateFilter: updateImagesDateFilter,
+    clearDateFilter: clearImagesDateFilter,
+    totalCount: totalImagesCount,
+    filteredCount: filteredImagesCount
   } = useSupabaseFiles("images");
   
   const { 
     files: uploadedSounds, 
     isLoading: soundsLoading, 
     addFiles: addSounds, 
-    removeFile: removeSound 
+    removeFile: removeSound,
+    dateFilter: soundsDateFilter,
+    updateDateFilter: updateSoundsDateFilter,
+    clearDateFilter: clearSoundsDateFilter,
+    totalCount: totalSoundsCount,
+    filteredCount: filteredSoundsCount
   } = useSupabaseFiles("sounds");
 
-  const handleFilesUploaded = (files: { file: File; url: string; name: string }[]) => {
+  const handleFilesUploaded = (files: { file: File; url: string; name: string; uploadedAt: Date; size: number }[]) => {
     if (activeTab === "images") {
       addImages(files);
     } else {
@@ -42,6 +53,25 @@ const Index = () => {
 
   const currentFiles = activeTab === "images" ? uploadedImages : uploadedSounds;
   const isLoading = activeTab === "images" ? imagesLoading : soundsLoading;
+  const currentDateFilter = activeTab === "images" ? imagesDateFilter : soundsDateFilter;
+  const currentTotalCount = activeTab === "images" ? totalImagesCount : totalSoundsCount;
+  const currentFilteredCount = activeTab === "images" ? filteredImagesCount : filteredSoundsCount;
+
+  const handleDateFilterChange = (startDate: Date | null, endDate: Date | null) => {
+    if (activeTab === "images") {
+      updateImagesDateFilter(startDate, endDate);
+    } else {
+      updateSoundsDateFilter(startDate, endDate);
+    }
+  };
+
+  const handleClearDateFilter = () => {
+    if (activeTab === "images") {
+      clearImagesDateFilter();
+    } else {
+      clearSoundsDateFilter();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,6 +81,16 @@ const Index = () => {
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
         
         <FileUpload type={activeTab} onFilesUploaded={handleFilesUploaded} />
+        
+        <DateFilter
+          startDate={currentDateFilter.startDate}
+          endDate={currentDateFilter.endDate}
+          onDateChange={handleDateFilterChange}
+          onClear={handleClearDateFilter}
+          totalCount={currentTotalCount}
+          filteredCount={currentFilteredCount}
+          type={activeTab}
+        />
         
         <div className="w-full max-w-4xl mx-auto">
           {isLoading ? (
@@ -74,6 +114,7 @@ const Index = () => {
                     name={fileData.name}
                     type={activeTab}
                     onRemove={() => handleRemoveFile(index)}
+                    uploadedAt={fileData.uploadedAt}
                   />
                 ))}
               </div>
