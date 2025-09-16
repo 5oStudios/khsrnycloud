@@ -130,7 +130,7 @@ const Index = () => {
               </div>
               
               {/* Files Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
                 {currentFiles.map((fileData, index) => {
                   // Calculate the actual index in the filtered array for proper removal
                   const actualIndex = (currentPage - 1) * currentItemsPerPage + index;
