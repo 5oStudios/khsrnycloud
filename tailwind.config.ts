@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
         'mono': ['Orbitron', 'monospace'],
       },
       colors: {
