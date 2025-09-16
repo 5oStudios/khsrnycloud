@@ -2,6 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { Copy, Play, Pause, X, Download, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 interface FilePreviewProps {
   file: File;
   url: string;
@@ -22,6 +33,7 @@ const FilePreview = ({
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const {
     toast
@@ -95,8 +107,13 @@ const FilePreview = ({
     e.preventDefault();
     e.stopPropagation();
     console.log("=== DELETE BUTTON CLICKED ===");
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
     console.log("Removing file:", name);
     onRemove();
+    setShowDeleteDialog(false);
   };
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -288,11 +305,32 @@ const FilePreview = ({
 
             {type === "sounds"}
             
-            <button onClick={handleRemove} className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 sm:h-9 px-2 sm:px-3 cursor-pointer touch-manipulation" type="button" style={{
-            pointerEvents: 'all'
-          }}>
-              <X className="h-3 w-3 sm:h-4 sm:w-4 pointer-events-none" />
-            </button>
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <AlertDialogTrigger asChild>
+                <button onClick={handleRemove} className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 sm:h-9 px-2 sm:px-3 cursor-pointer touch-manipulation" type="button" style={{
+                pointerEvents: 'all'
+              }}>
+                  <X className="h-3 w-3 sm:h-4 sm:w-4 pointer-events-none" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="w-[95vw] max-w-md mx-auto">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-base sm:text-lg">Delete {type === "images" ? "Image" : "Sound"}</AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm sm:text-base">
+                    Deleting this item will delete the same content in KHSRNI game. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                  <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={confirmDelete}
+                    className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
