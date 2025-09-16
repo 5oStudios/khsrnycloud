@@ -17,6 +17,8 @@ export const useSupabaseFiles = (type: "images" | "sounds") => {
     startDate: Date | null;
     endDate: Date | null;
   }>({ startDate: null, endDate: null });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(30);
 
   const bucketId = type === "images" ? "khsrny-images" : "khsrny-sounds";
 
@@ -47,7 +49,7 @@ export const useSupabaseFiles = (type: "images" | "sounds") => {
       const { data, error } = await supabase.storage
         .from(bucketId)
         .list('', {
-          limit: 100,
+          limit: 1000, // Load more files to handle pagination properly
           offset: 0,
           sortBy: { column: 'created_at', order: 'desc' }
         });
@@ -119,11 +121,30 @@ export const useSupabaseFiles = (type: "images" | "sounds") => {
 
   const clearDateFilter = () => {
     setDateFilter({ startDate: null, endDate: null });
+    setCurrentPage(1); // Reset to first page when clearing filter
+  };
+
+  // Get paginated files
+  const getPaginatedFiles = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredFiles.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
   return {
-    files: filteredFiles,
+    files: getPaginatedFiles(),
     allFiles,
+    filteredFiles,
     isLoading,
     addFiles,
     removeFile,
@@ -132,6 +153,11 @@ export const useSupabaseFiles = (type: "images" | "sounds") => {
     updateDateFilter,
     clearDateFilter,
     totalCount: allFiles.length,
-    filteredCount: filteredFiles.length
+    filteredCount: filteredFiles.length,
+    currentPage,
+    itemsPerPage,
+    handlePageChange,
+    handleItemsPerPageChange,
+    totalPages: Math.ceil(filteredFiles.length / itemsPerPage)
   };
 };

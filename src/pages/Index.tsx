@@ -4,6 +4,7 @@ import TabNavigation from "@/components/TabNavigation";
 import FileUpload from "@/components/FileUpload";
 import FilePreview from "@/components/FilePreview";
 import DateFilter from "@/components/DateFilter";
+import FilePagination from "@/components/FilePagination";
 import { useSupabaseFiles } from "@/hooks/useSupabaseFiles";
 
 type TabType = "images" | "sounds";
@@ -20,7 +21,11 @@ const Index = () => {
     updateDateFilter: updateImagesDateFilter,
     clearDateFilter: clearImagesDateFilter,
     totalCount: totalImagesCount,
-    filteredCount: filteredImagesCount
+    filteredCount: filteredImagesCount,
+    currentPage: imagesCurrentPage,
+    itemsPerPage: imagesItemsPerPage,
+    handlePageChange: handleImagesPageChange,
+    handleItemsPerPageChange: handleImagesItemsPerPageChange
   } = useSupabaseFiles("images");
   
   const { 
@@ -32,7 +37,11 @@ const Index = () => {
     updateDateFilter: updateSoundsDateFilter,
     clearDateFilter: clearSoundsDateFilter,
     totalCount: totalSoundsCount,
-    filteredCount: filteredSoundsCount
+    filteredCount: filteredSoundsCount,
+    currentPage: soundsCurrentPage,
+    itemsPerPage: soundsItemsPerPage,
+    handlePageChange: handleSoundsPageChange,
+    handleItemsPerPageChange: handleSoundsItemsPerPageChange
   } = useSupabaseFiles("sounds");
 
   const handleFilesUploaded = (files: { file: File; url: string; name: string; uploadedAt: Date; size: number }[]) => {
@@ -56,6 +65,10 @@ const Index = () => {
   const currentDateFilter = activeTab === "images" ? imagesDateFilter : soundsDateFilter;
   const currentTotalCount = activeTab === "images" ? totalImagesCount : totalSoundsCount;
   const currentFilteredCount = activeTab === "images" ? filteredImagesCount : filteredSoundsCount;
+  const currentPage = activeTab === "images" ? imagesCurrentPage : soundsCurrentPage;
+  const currentItemsPerPage = activeTab === "images" ? imagesItemsPerPage : soundsItemsPerPage;
+  const handlePageChange = activeTab === "images" ? handleImagesPageChange : handleSoundsPageChange;
+  const handleItemsPerPageChange = activeTab === "images" ? handleImagesItemsPerPageChange : handleSoundsItemsPerPageChange;
 
   const handleDateFilterChange = (startDate: Date | null, endDate: Date | null) => {
     if (activeTab === "images") {
@@ -92,32 +105,58 @@ const Index = () => {
           type={activeTab}
         />
         
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           {isLoading ? (
             <div className="text-center py-8">
               <div className="text-neon-cyan">Loading {activeTab}...</div>
             </div>
-          ) : currentFiles.length > 0 ? (
+          ) : currentFilteredCount > 0 ? (
             <>
-              <h2 className="text-xl font-semibold mb-6 text-center">
-                <span className="bg-gradient-to-r from-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                  Uploaded {activeTab === "images" ? "Images" : "Sounds"}
-                </span>
-              </h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-                {currentFiles.map((fileData, index) => (
-                  <FilePreview
-                    key={`${fileData.name}-${index}`}
-                    file={fileData.file}
-                    url={fileData.url}
-                    name={fileData.name}
-                    type={activeTab}
-                    onRemove={() => handleRemoveFile(index)}
-                    uploadedAt={fileData.uploadedAt}
-                  />
-                ))}
+              {/* Header with total count */}
+              <div className="mb-6 text-center space-y-2">
+                <h2 className="text-xl font-semibold">
+                  <span className="bg-gradient-to-r from-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                    Uploaded {activeTab === "images" ? "Images" : "Sounds"}
+                  </span>
+                </h2>
+                <div className="text-sm text-muted-foreground">
+                  Total: {currentTotalCount} {activeTab}
+                  {currentFilteredCount !== currentTotalCount && (
+                    <span className="ml-2 text-neon-cyan">
+                      ({currentFilteredCount} filtered)
+                    </span>
+                  )}
+                </div>
               </div>
+              
+              {/* Files Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
+                {currentFiles.map((fileData, index) => {
+                  // Calculate the actual index in the filtered array for proper removal
+                  const actualIndex = (currentPage - 1) * currentItemsPerPage + index;
+                  return (
+                    <FilePreview
+                      key={`${fileData.name}-${actualIndex}`}
+                      file={fileData.file}
+                      url={fileData.url}
+                      name={fileData.name}
+                      type={activeTab}
+                      onRemove={() => handleRemoveFile(actualIndex)}
+                      uploadedAt={fileData.uploadedAt}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              <FilePagination
+                totalItems={currentFilteredCount}
+                itemsPerPage={currentItemsPerPage}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+                type={activeTab}
+              />
             </>
           ) : (
             <div className="text-center py-12">
@@ -125,7 +164,10 @@ const Index = () => {
                 {activeTab === "images" ? "📷" : "🎵"}
               </div>
               <p className="text-muted-foreground">
-                No {activeTab} uploaded yet. Drop some files above to get started!
+                {currentTotalCount === 0 
+                  ? `No ${activeTab} uploaded yet. Drop some files above to get started!`
+                  : `No ${activeTab} match the current filter. Try adjusting your date range.`
+                }
               </p>
             </div>
           )}
